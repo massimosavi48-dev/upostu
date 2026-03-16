@@ -1,0 +1,73 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #020617;
+  color: #e5e7eb;
+}
+
+.top-bar {
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  border-bottom: 1px solid #1f2937;
+}
+
+.top-bar h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.top-bar p {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+  color: #9ca3af;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 72px);
+}
+
+.map-section {
+  flex: 1;
+}
+
+#map {
+  height: 600px;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem 1.25rem;
+  background: #020617;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.5);
+}
+
+.actions button {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border-radius: 999px;
+  border: none;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+#locate-btn {
+  background: #22c55e;
+  color: #022c22;
+}
+
+#install-btn {
+  background: #0ea5e9;
+  color: #022c22;
+}
+

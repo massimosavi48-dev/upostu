@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>UPOSTU</title>
+
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#111827">
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+
+<style>
+
+body{
+margin:0;
+font-family:Arial;
+background:#111827;
+color:white;
+text-align:center;
+}
+
+header{
+padding:20px;
+}
+
+#map{
+height:500px;
+width:100%;
+}
+
+.actions{
+margin:10px;
+}
+
+button{
+width:90%;
+padding:18px;
+margin:6px;
+font-size:18px;
+border:none;
+border-radius:14px;
+}
+
+#leave-btn{
+background:#ef4444;
+color:white;
+}
+
+#find-btn{
+background:#22c55e;
+color:white;
+}
+
+#arrival-info{
+margin:10px;
+padding:10px;
+background:#1f2937;
+border-radius:10px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+
+<h1>UPOSTU</h1>
+<p>Find parking faster</p>
+
+</header>
+
+<section class="actions">
+
+<button id="leave-btn">🚗 LASCIO IL POSTO</button>
+
+<button id="find-btn">🔍 CERCO POSTO</button>
+
+</section>
+
+<div id="map"></div>
+
+<div id="arrival-info"></div>
+
+<script src="/sw-register.js"></script>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+<script src="/main.js"></script>
+
+</body>
+
+</html>
