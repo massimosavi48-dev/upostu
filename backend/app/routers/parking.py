@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..db.session import get_db
 from ..models.parking_spot import ParkingSpot
+from ..models.parking_reservation import ParkingReservation
 from ..schemas import ParkingSpotCreate, ParkingSpotResponse
 from ..services import parking_service
 
@@ -46,7 +47,7 @@ async def create_parking(
 
     spot = await parking_service.create_parking_spot(db, payload)
 
-    # 🔴 REALTIME BROADCAST
+    # REALTIME BROADCAST
     await parking_service.manager.broadcast(
         {
             "event": "parking_spot_created",
@@ -81,4 +82,31 @@ async def leave_parking(
         "message": "Parking spot left",
         "lat": lat,
         "lng": lng,
+    }
+
+
+# -----------------------------
+# PRENOTAZIONE PARCHEGGIO
+# -----------------------------
+
+@router.post("/reserve")
+async def reserve_parking(
+    spot_id: str,
+    user_id: int,
+    db: AsyncSession = Depends(get_db),
+):
+
+    reservation = ParkingReservation(
+        spot_id=spot_id,
+        user_id=user_id,
+    )
+
+    db.add(reservation)
+
+    await db.commit()
+
+    return {
+        "status": "reserved",
+        "spot_id": spot_id,
+        "user_id": user_id,
     }
