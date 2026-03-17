@@ -31,7 +31,8 @@ padding:20px;
 }
 
 #map{
-height:500px;
+height:60vh;
+min-height:320px;
 width:100%;
 }
 
@@ -46,6 +47,7 @@ margin:6px;
 font-size:18px;
 border:none;
 border-radius:14px;
+cursor:pointer;
 }
 
 #leave-btn{
@@ -55,6 +57,11 @@ color:white;
 
 #find-btn{
 background:#22c55e;
+color:white;
+}
+
+#locate-btn{
+background:#3b82f6;
 color:white;
 }
 
@@ -72,10 +79,8 @@ border-radius:10px;
 <body>
 
 <header>
-
 <h1>UPOSTU</h1>
 <p>Find parking faster</p>
-
 </header>
 
 <section class="actions">
@@ -84,19 +89,25 @@ border-radius:10px;
 
 <button id="find-btn">🔍 CERCO POSTO</button>
 
+<!-- 🔥 NUOVO -->
+<button id="locate-btn">📍 USA LA MIA POSIZIONE</button>
+
+<!-- opzionale test -->
+<button onclick="sendTest()">🧪 TEST WEBSOCKET</button>
+
 </section>
 
 <div id="map"></div>
 
 <div id="arrival-info"></div>
 
-<script src="/sw-register.js"></script>
+<!-- <script src="/sw-register.js"></script> -->
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
-<script src="/main.js"></script>
+<!-- IMPORTANTE: type module -->
+<script type="module" src="/main.js"></script>
 
 </body>
 

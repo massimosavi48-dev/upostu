@@ -16,7 +16,8 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title="UPOSTU",
         version="0.1.0",
-        description="UPOSTU parking sharing backend"
+        description="UPOSTU parking sharing backend",
+        root_path="/api"  # 🔥 FIX FONDAMENTALE
     )
 
     # CORS per permettere al frontend PWA di parlare con il backend
