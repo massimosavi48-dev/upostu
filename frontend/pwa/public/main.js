@@ -1,4 +1,5 @@
 const API_BASE = "http://localhost:8000";
+const WS_URL = "wss://upostu.it/api/ws";
 
 // Safety cleanup: unregister any existing service workers (prevents stale cached assets).
 if ("serviceWorker" in navigator) {
@@ -58,11 +59,27 @@ let incomingUserMarker = null;
 
 /* WEBSOCKET */
 
-const socket = new WebSocket(`ws://${window.location.hostname}:8000/ws`);
+let socket = null;
+try {
+ socket = new WebSocket(WS_URL);
+ console.log("WS init", WS_URL);
+} catch (e) {
+ console.warn("WS init failed:", e);
+}
 
-socket.onmessage = (event)=>{
+if (socket) {
+ socket.onopen = () => console.log("WS connected");
+ socket.onerror = (e) => console.warn("WS error", e);
+ socket.onclose = () => console.warn("WS closed");
+ socket.onmessage = (event)=>{
 
- const message = JSON.parse(event.data);
+ let message;
+ try {
+  message = JSON.parse(event.data);
+ } catch (e) {
+  console.warn("WS message parse failed:", e, event.data);
+  return;
+ }
 
  if(message.event==="parking_spot_created"){
 
@@ -89,7 +106,8 @@ socket.onmessage = (event)=>{
 
  }
 
-};
+ };
+}
 
 
 /* CREA MARKER */
@@ -142,6 +160,7 @@ let userLng=null;
 
 function getUserLocation(){
 
+ if (!navigator.geolocation) return;
  navigator.geolocation.getCurrentPosition(pos=>{
 
   userLat=pos.coords.latitude;
@@ -154,7 +173,7 @@ function getUserLocation(){
    .addTo(map)
    .openPopup();
 
- });
+ }, () => {});
 
 }
 
@@ -164,8 +183,10 @@ function getUserLocation(){
 function sendLocation(){
 
  if(!userLat||!userLng) return;
+ if (!socket || socket.readyState !== WebSocket.OPEN) return;
 
- socket.send(JSON.stringify({
+ try {
+  socket.send(JSON.stringify({
 
   event:"user_location",
 
@@ -174,13 +195,17 @@ function sendLocation(){
    longitude:userLng
   }
 
- }));
+  }));
+ } catch (e) {
+  console.warn("WS send failed:", e);
+ }
 
 }
 
 
 setInterval(()=>{
 
+ if (!navigator.geolocation) return;
  navigator.geolocation.getCurrentPosition(pos=>{
 
   userLat=pos.coords.latitude;
@@ -188,7 +213,7 @@ setInterval(()=>{
 
   sendLocation();
 
- });
+ }, () => {});
 
 },3000);
 
