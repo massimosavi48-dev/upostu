@@ -11,6 +11,7 @@ if ("serviceWorker" in navigator) {
 /* MAPPA */
 
 window.addEventListener("DOMContentLoaded", () => {
+ console.log("main.js executing");
  console.log("DOMContentLoaded");
 
  const mapEl = document.getElementById("map");
@@ -39,6 +40,9 @@ window.addEventListener("DOMContentLoaded", () => {
  setTimeout(fixMapSize, 200);
  window.addEventListener("resize", fixMapSize, { passive: true });
  window.addEventListener("orientationchange", () => setTimeout(fixMapSize, 200), { passive: true });
+
+ // Debug handle (useful on mobile Safari remote debugging)
+ window.__upostuMap = map;
 
 
 /* CLUSTER */
