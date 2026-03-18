@@ -1,12 +1,44 @@
 const API_BASE = "http://localhost:8000";
 
+// Safety cleanup: unregister any existing service workers (prevents stale cached assets).
+if ("serviceWorker" in navigator) {
+ navigator.serviceWorker.getRegistrations()
+  .then((regs) => Promise.all(regs.map((r) => r.unregister())))
+  .then(() => console.log("Service Worker(s) unregistered"))
+  .catch((e) => console.warn("Service Worker unregister failed:", e));
+}
+
 /* MAPPA */
 
-const map = L.map("map").setView([38.1157,13.3615],13);
+window.addEventListener("DOMContentLoaded", () => {
+ console.log("DOMContentLoaded");
 
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
- attribution:"© OpenStreetMap"
-}).addTo(map);
+ const mapEl = document.getElementById("map");
+ if (!mapEl) {
+  console.warn('Elemento "#map" non trovato: skip map init');
+  return;
+ }
+ if (typeof window.L === "undefined") {
+  console.error("Leaflet (L) non caricato");
+  return;
+ }
+
+ console.log("MAP INIT");
+ const map = L.map("map").setView([38.1157,13.3615],13);
+
+ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
+  attribution:"© OpenStreetMap"
+ }).addTo(map);
+
+ // Mobile: ensure the map container size is computed before rendering tiles
+ const fixMapSize = () => {
+  try { map.invalidateSize(); } catch(e) { console.warn("invalidateSize failed:", e); }
+ };
+ fixMapSize();
+ requestAnimationFrame(fixMapSize);
+ setTimeout(fixMapSize, 200);
+ window.addEventListener("resize", fixMapSize, { passive: true });
+ window.addEventListener("orientationchange", () => setTimeout(fixMapSize, 200), { passive: true });
 
 
 /* CLUSTER */
@@ -159,7 +191,10 @@ setInterval(()=>{
 
 /* LASCIO POSTO */
 
-document.getElementById("leave-btn").onclick=async()=>{
+const leaveBtn = document.getElementById("leave-btn");
+if (!leaveBtn) {
+ console.warn('BUTTON MISSING: "leave-btn"');
+} else leaveBtn.onclick=async()=>{
 
  if(!userLat) return;
 
@@ -187,7 +222,10 @@ document.getElementById("leave-btn").onclick=async()=>{
 
 /* CERCO POSTO */
 
-document.getElementById("find-btn").onclick=async()=>{
+const findBtn = document.getElementById("find-btn");
+if (!findBtn) {
+ console.warn('BUTTON MISSING: "find-btn"');
+} else findBtn.onclick=async()=>{
 
  const res=await fetch(`${API_BASE}/parking/nearby?lat=${userLat}&lng=${userLng}`);
 
@@ -286,7 +324,9 @@ function updateArrivalInfo(lat,lon){
 
  const eta=dist/(speed*1000/3600);
 
- document.getElementById("arrival-info").innerHTML=`
+ const arrivalEl = document.getElementById("arrival-info");
+ if (!arrivalEl) return;
+ arrivalEl.innerHTML=`
  Utente in arrivo<br>
  Distanza: ${Math.round(dist)} m<br>
  Velocità: ${speed} km/h<br>
@@ -301,3 +341,4 @@ function updateArrivalInfo(lat,lon){
 loadParkingSpots();
 
 getUserLocation();
+});

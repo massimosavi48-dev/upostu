@@ -17,12 +17,17 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
 
 <style>
+html, body{
+  height:100%;
+}
 body{
   margin:0;
   font-family:Arial;
   background:#111827;
   color:white;
   text-align:center;
+  position:relative;
+  overflow:hidden;
 }
 
 header{
@@ -30,9 +35,11 @@ header{
 }
 
 #map{
-  height:60vh;
-  min-height:320px;
+  height:100vh;
   width:100%;
+  position:absolute;
+  top:0;
+  left:0;
 }
 
 .actions{
@@ -71,7 +78,6 @@ button{
   border-radius:10px;
 }
 </style>
-<!-- <script src="/sw-register.js"></script> -->
 
 </head>
 
@@ -102,6 +108,17 @@ button{
 
 <!-- service worker script commented to avoid mobile cache issues -->
 <!-- <script src="/sw-register.js"></script> -->
+<script>
+  // Dev: disable any previously-registered Service Worker (prevents stale mobile cache)
+  if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.getRegistrations()
+        .then((regs) => Promise.all(regs.map((r) => r.unregister())))
+        .then(() => console.log("Service Worker unregistered (dev)"))
+        .catch((e) => console.warn("Service Worker unregister failed:", e));
+    }
+  }
+</script>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>

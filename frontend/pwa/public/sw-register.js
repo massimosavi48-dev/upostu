@@ -1,8 +1,9 @@
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker
-      .register("/service-worker.js")
-      .catch((err) => console.error("SW registration failed", err));
+    // TEMP (dev): disable SW registration to avoid stale caching.
+    // navigator.serviceWorker
+    //   .register("/service-worker.js")
+    //   .catch((err) => console.error("SW registration failed", err));
   });
 }
 
@@ -12,10 +13,10 @@ const installBtn = document.getElementById("install-btn");
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  installBtn.hidden = false;
+  if (installBtn) installBtn.hidden = false;
 });
 
-installBtn.addEventListener("click", async () => {
+if (installBtn) installBtn.addEventListener("click", async () => {
   if (!deferredPrompt) return;
   deferredPrompt.prompt();
   await deferredPrompt.userChoice;
