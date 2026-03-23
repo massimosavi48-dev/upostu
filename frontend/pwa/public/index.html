@@ -17,17 +17,47 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
 
 <style>
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 html, body{
   height:100%;
 }
 body{
   margin:0;
   font-family:Arial;
-  background:#111827;
+  background:#000;
   color:white;
   text-align:center;
   position:relative;
-  overflow:hidden;
+  overflow-x:hidden;
+  overflow-y:auto;
+}
+
+.container {
+  max-width: 400px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 10px;
+}
+
+#test-banner {
+  width: 100%;
+  background: #ff1a1a;
+  color: #fff;
+  font-size: 2.2em;
+  font-weight: bold;
+  letter-spacing: 2px;
+  padding: 18px 0 10px 0;
+  text-align: center;
+  position: relative;
+  z-index: 1001;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.14);
+  margin-bottom: 0;
+  user-select: none;
 }
 
 header{
@@ -37,13 +67,16 @@ header{
 }
 
 #map{
-  height:100vh;
+  height:100%;
   width:100%;
-  position:fixed;
+  position:absolute;
   top:0;
   left:0;
   z-index:0;
-  background:#111827;
+  background:#fff;
+  border-radius:12px;
+  overflow:hidden;
+  pointer-events:auto;
 }
 
 .actions{
@@ -53,22 +86,22 @@ header{
 }
 
 button{
-  width:90%;
-  padding:18px;
-  margin:6px;
-  font-size:18px;
+  width:100%;
+  padding:0;
+  margin:0;
+  font-size:16px;
   border:none;
   border-radius:14px;
   cursor:pointer;
 }
 
 #leave-btn{
-  background:#ef4444;
+  background:rgba(0,0,0,0.15);
   color:white;
 }
 
 #find-btn{
-  background:#22c55e;
+  background:rgba(0,0,0,0.15);
   color:white;
 }
 
@@ -85,34 +118,514 @@ button{
   position:relative;
   z-index:10;
 }
+
+/* Mobile-first overlay UI */
+.ui{
+  position:relative;
+  z-index:10;
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  min-height:100vh;
+  pointer-events:none; /* map interactions remain possible */
+}
+
+.logo{
+  margin-top:18px;
+  margin-bottom:0;
+  pointer-events:none;
+  width:100%;
+  height: auto;
+  display:block;
+}
+
+.map-card{
+  margin-top:10px;
+  width:100%;
+  max-width:100%;
+  aspect-ratio: 1 / 1;
+  height:auto;
+  background:#fff;
+  border-radius:12px;
+  display:block;
+  pointer-events:auto;
+  overflow:hidden;
+  position:relative;
+}
+
+.map-card span{ display:none; }
+
+.btn{
+  pointer-events:auto;
+  border-radius:30px;
+  padding:14px;
+  width:100%;
+  margin:0;
+  border:1px solid rgba(255,255,255,0.14);
+  background:rgba(0,0,0,0.25);
+  color:#fff;
+  font-weight:700;
+  font-size:15px;
+  text-align:center;
+  touch-action:manipulation;
+  box-shadow:
+    0 18px 40px rgba(0,0,0,0.55),
+    0 0 0 1px rgba(255,255,255,0.05);
+  transition: box-shadow 0.25s ease, transform 0.2s ease, filter 0.25s ease;
+}
+
+.buttons{
+  display:flex;
+  gap:10px;
+  margin:15px 0;
+  width:100%;
+}
+
+.buttons button{
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.buttons button:active{
+  transform: scale(0.96);
+  box-shadow:
+    0 10px 28px rgba(0,0,0,0.6),
+    0 0 0 1px rgba(255,255,255,0.08);
+}
+
+.buttons button{
+  flex:1;
+}
+
+.btn-row{
+  margin-top:12px;
+  width:100%;
+  max-width:100%;
+  display:flex;
+  gap:10px;
+  pointer-events:auto;
+}
+
+.btn-row button{flex:1;}
+.btn-row .cell{flex:1;}
+
+.btn-red{
+  border-color: rgba(239, 68, 68, 0.55);
+  background: rgba(239, 68, 68, 0.10);
+}
+.btn-green{
+  border-color: rgba(59, 130, 246, 0.55);
+  background: rgba(59, 130, 246, 0.10);
+}
+
+.monitor-stack{
+  margin-top:12px;
+  width:100%;
+  max-width:100%;
+  display:flex;
+  flex-direction:column;
+  gap:0;
+}
+
+.monitor-box{
+  width:100%;
+  border-radius:22px;
+  border:1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+  color:#fff;
+  padding:14px 14px;
+  font-weight:800;
+  font-size:15px;
+  line-height:1.35;
+  text-align:center;
+  pointer-events:none; /* don't block map gestures */
+  box-shadow: 0 18px 42px rgba(0,0,0,0.55);
+  transition: box-shadow 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
+}
+
+.gps-box{
+  width:100%;
+  margin:10px 0;
+}
+
+.gps-box{
+  transition: box-shadow 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
+}
+
+.gps-box.updating{
+  opacity:0;
+  transform: translateY(6px);
+}
+
+.gps-box.active{
+  box-shadow:
+    0 0 0 1px rgba(255, 200, 0, 0.25),
+    0 0 18px rgba(255, 200, 0, 0.32),
+    0 18px 42px rgba(0,0,0,0.55);
+}
+
+.status{
+  font-weight: 900;
+  color:#ffcc00;
+  font-size:18px;
+  padding:6px 12px;
+  border-radius:999px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid rgba(255, 204, 0, 0.35);
+  background: rgba(255, 204, 0, 0.12);
+  text-shadow: 0 0 12px rgba(255, 204, 0, 0.25);
+}
+
+.status.approaching{ color: #ffcc00; }
+.status.searching{
+  color: #00aaff;
+  border-color: rgba(0, 170, 255, 0.35);
+  background: rgba(0, 170, 255, 0.10);
+  text-shadow: 0 0 12px rgba(0, 170, 255, 0.22);
+}
+.status.arrived{
+  color: #00ff88;
+  border-color: rgba(0, 255, 136, 0.35);
+  background: rgba(0, 255, 136, 0.10);
+  text-shadow: 0 0 12px rgba(0, 255, 136, 0.22);
+}
+
+.radar-indicator{
+  margin-top:10px;
+  font-weight:900;
+  letter-spacing:0.4px;
+  opacity:0.85;
+}
+
+/* Lightweight UX helpers */
+#toast{
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  z-index: 9999;
+  padding: 12px 14px;
+  background: rgba(17, 24, 39, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  color: #fff;
+  font-weight: 900;
+  max-width: 90%;
+  text-align: center;
+  box-shadow: 0 18px 42px rgba(0,0,0,0.55);
+  display: none;
+}
+
+#loading-overlay{
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  background: rgba(0,0,0,0.55);
+  display: none;
+  pointer-events: auto;
+  align-items: center;
+  justify-content: center;
+}
+
+#loading-overlay .panel{
+  width: 78%;
+  max-width: 420px;
+  background: rgba(17, 24, 39, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  padding: 18px;
+  text-align: center;
+  box-shadow: 0 18px 42px rgba(0,0,0,0.55);
+}
+
+#loading-overlay .title{
+  font-weight: 1000;
+  letter-spacing: 0.2px;
+}
+
+.spinner{
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  border: 3px solid rgba(255,255,255,0.18);
+  border-top-color: rgba(59,130,246,0.95);
+  margin: 12px auto 0;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin { from { transform: rotate(0deg);} to { transform: rotate(360deg);} }
+
+.btn-blue{
+  border-color: rgba(96, 165, 250, 0.75);
+  background: rgba(96, 165, 250, 0.10);
+}
+
+.gps-metrics{
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.gps-metric{
+  width:100%;
+  display:flex;
+  align-items:baseline;
+  justify-content:center;
+  gap:8px;
+  line-height:1.15;
+}
+.gps-label{
+  font-size:13px;
+  font-weight:800;
+  opacity:0.72;
+  letter-spacing:0.2px;
+}
+.gps-value{
+  font-size:20px;
+  font-weight:900;
+  color:#e5e7eb;
+  opacity:0.97;
+}
+.gps-unit{
+  font-size:13px;
+  font-weight:800;
+  opacity:0.72;
+}
+.gps-metric.time .gps-value{
+  font-size:18px;
+}
+
+.monitor-box .muted{
+  font-weight:700;
+  opacity:0.95;
+}
+
+.bottom-row{
+  margin-top:16px;
+  margin-bottom:24px;
+  width:100%;
+  max-width:100%;
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:flex-start;
+  pointer-events:auto;
+}
+
+.bottom-row .cell{flex:1;}
+.btn-yellow{border-color:#FFD700;}
+
+.wallet-block{
+  flex: 1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+}
+
+.wallet{
+  padding:15px;
+  border-radius:20px;
+  background:#111;
+  text-align:center;
+  box-shadow: 0 0 15px rgba(255,200,0,0.4);
+  border: 1px solid rgba(255,200,0,0.18);
+}
+
+.topup-row{
+  width:100%;
+  display:flex;
+  gap:10px;
+  justify-content:space-between;
+  pointer-events:auto;
+}
+
+.topup-btn{
+  flex:1;
+  padding:10px 0;
+  border-radius:16px;
+  border:2px solid #FFD700;
+  background: rgba(0,0,0,0.25);
+  color:#fff;
+  font-weight:800;
+  font-size:14px;
+  cursor:pointer;
+  touch-action:manipulation;
+  box-shadow: none;
+  transition: transform 0.2s ease, box-shadow 0.3s ease, filter 0.3s ease;
+}
+
+.logout-block{
+  flex: 1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+  padding-top: 22px;
+}
+
+.logout-btn{
+  width:100%;
+  border-radius:22px;
+  border:1px solid rgba(255,255,255,0.16);
+  background: rgba(0,0,0,0.25);
+  color:#fff;
+  font-weight:900;
+  padding:14px 10px;
+  box-shadow: 0 18px 42px rgba(0,0,0,0.55);
+  cursor:pointer;
+  touch-action:manipulation;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.wallet-label{
+  color:#fff;
+  font-size:13px;
+  font-weight:800;
+  letter-spacing:0.6px;
+  opacity:0.9;
+}
+
+.wallet-amount{
+  width:100%;
+  padding:4px 0 0 0;
+  border-radius:16px;
+  border:none;
+  background:transparent;
+  color:#fff;
+  font-size:26px;
+  font-weight:900;
+  text-align:center;
+  box-shadow:none;
+}
+
+.wallet-amount{
+  display:block;
+  cursor:default;
+  touch-action:manipulation;
+}
 </style>
 
 </head>
 
 <body>
 
-<header>
-<h1>UPOSTU</h1>
-<p>Find parking faster</p>
-</header>
+<div class="container">
+  <div class="ui">
+    <img class="logo" src="assets/upostu-logo.png" alt="UPOSTU" />
 
-<section class="actions">
+    <div class="map-card">
+      <div id="map"></div>
+    </div>
 
-<button id="leave-btn">🚗 LASCIO IL POSTO</button>
+    <div class="btn-row buttons">
+      <button id="find-btn" class="btn btn-green">CERCO POSTO</button>
+      <button id="leave-btn" class="btn btn-red">LASCIO POSTO</button>
+    </div>
 
-<button id="find-btn">🔍 CERCO POSTO</button>
+    <div class="monitor-stack">
+      <div id="leaving-box" class="monitor-box gps-box">
+        <div class="gps-metrics">
+          <div class="gps-metric">
+            <span class="gps-label">Speed</span>
+            <span class="gps-value" id="leaving-speed">0</span>
+            <span class="gps-unit">km/h</span>
+          </div>
+          <div class="gps-metric">
+            <span class="gps-label">Distance</span>
+            <span class="gps-value" id="leaving-distance">0</span>
+            <span class="gps-unit">m</span>
+          </div>
+          <div class="gps-metric time">
+            <span class="gps-label">Time</span>
+            <span class="gps-value" id="leaving-time">00:00:00</span>
+          </div>
+        </div>
+      </div>
+      <div id="approaching-box" class="monitor-box gps-box">
+        <div class="gps-metrics">
+          <div class="gps-metric">
+            <span class="gps-label">Distance</span>
+            <span class="gps-value" id="approaching-distance">0</span>
+            <span class="gps-unit">m</span>
+          </div>
+          <div class="gps-metric time">
+            <span class="gps-label">ETA</span>
+            <span class="gps-value" id="approaching-eta">00:00:00</span>
+          </div>
+          <div class="gps-metric">
+            <span class="gps-label">Status</span>
+            <span id="approaching-status" class="status approaching">approaching</span>
+          </div>
+        </div>
+        <div id="radar-indicator" class="radar-indicator">Radar: —</div>
+        <div style="margin-top:10px; width:100%;">
+          <button id="unlock-btn" class="btn btn-yellow" style="display:none;">Unlock Spot €0.50</button>
+          <div id="unlock-status" class="muted" style="margin-top:8px;"></div>
+        </div>
+      </div>
 
-<!-- 🔥 NUOVO -->
-<button id="locate-btn">📍 USA LA MIA POSIZIONE</button>
+      <div id="owner-buyer-box" class="monitor-box gps-box" style="display:none;">
+        <div class="gps-metrics">
+          <div class="gps-metric">
+            <span class="gps-label">Buyer</span>
+            <span class="gps-value" id="owner-buyer-id">-</span>
+          </div>
+          <div class="gps-metric">
+            <span class="gps-label">Distance</span>
+            <span class="gps-value" id="owner-buyer-distance">0</span>
+            <span class="gps-unit">m</span>
+          </div>
+          <div class="gps-metric">
+            <span class="gps-label">Status</span>
+            <span id="owner-buyer-status" class="status approaching">approaching</span>
+          </div>
+        </div>
+      </div>
+    </div>
 
-<!-- opzionale test -->
-<button onclick="sendTest()">🧪 TEST WEBSOCKET</button>
+    <div class="btn-row" style="margin-top:12px; pointer-events:auto;">
+      <button id="navigate-spot-btn" class="btn btn-green" style="display:none;">Navigate to spot</button>
+    </div>
 
-</section>
+    <div class="btn-row" style="margin-top:10px; pointer-events:auto;">
+      <button id="save-car-btn" class="btn btn-blue" style="display:none;">Save my car position</button>
+      <button id="go-to-car-btn" class="btn btn-yellow" style="display:none;">Go to my car</button>
+    </div>
 
-<div id="map"></div>
+    <div style="margin: 12px 10px 0; pointer-events:auto;">
+      <a href="/profile.html" style="color:#93c5fd; font-weight:900; text-decoration:none;">PROFILE</a>
+      <span style="opacity:0.5; margin:0 10px;">|</span>
+      <a href="/login.html" style="color:#93c5fd; font-weight:900; text-decoration:none;">LOGIN</a>
+    </div>
+    <div id="user-car-display" style="margin: 8px 10px 0; opacity:0.9; font-weight:800; pointer-events:auto;"></div>
 
-<div id="arrival-info"></div>
+    <div class="bottom-row">
+      <div class="wallet-block wallet">
+        <div class="wallet-label">WALLET</div>
+        <div id="wallet-amount" class="wallet-amount">€0.00</div>
+        <div class="topup-row">
+          <button id="topup-5" class="topup-btn">€5</button>
+          <button id="topup-10" class="topup-btn">€10</button>
+          <button id="topup-20" class="topup-btn">€20</button>
+        </div>
+      </div>
+      <div class="logout-block">
+        <button id="logout-btn" class="logout-btn">LOGOUT</button>
+      </div>
+    </div>
+
+    <!-- Global UX overlays -->
+    <div id="toast"></div>
+    <div id="loading-overlay">
+      <div class="panel">
+        <div class="title">Loading...</div>
+        <div class="spinner"></div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- service worker script commented to avoid mobile cache issues -->
 <!-- <script src="/sw-register.js"></script> -->
@@ -131,8 +644,8 @@ button{
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
-<!-- Use classic script for iOS Safari compatibility -->
-<script src="/main.js" defer></script>
+<!-- ES module entrypoint -->
+<script type="module" src="main.js"></script>
 
 </body>
 

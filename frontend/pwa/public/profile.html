@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Profile - UPOSTU</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #000;
+        color: #fff;
+        padding: 18px;
+      }
+      .container { max-width: 520px; margin: 0 auto; }
+      .card {
+        background: #111;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 14px;
+        padding: 18px;
+        box-shadow: 0 18px 42px rgba(0, 0, 0, 0.55);
+        margin-bottom: 14px;
+      }
+      h1 { font-size: 20px; margin: 0 0 10px; }
+      label { display: block; text-align: left; font-weight: 700; opacity: 0.9; margin-top: 12px; }
+      input, button, select { width: 100%; padding: 12px 12px; margin-top: 8px; border-radius: 12px; border: none; }
+      input, select { background: rgba(0,0,0,0.25); color: #fff; border: 1px solid rgba(255,255,255,0.12); }
+      button { margin-top: 16px; background: #3b82f6; color: #fff; font-weight: 900; cursor: pointer; }
+      .muted { opacity: 0.8; font-size: 13px; margin-top: 10px; }
+      .car {
+        padding: 10px;
+        border: 1px solid rgba(255,255,255,0.10);
+        border-radius: 12px;
+        margin-top: 10px;
+      }
+      .row { display: flex; gap: 10px; }
+      .row > div { flex: 1; }
+      a { color: #93c5fd; text-decoration: none; font-weight: 800; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <h1>Your profile</h1>
+        <div class="muted" id="status"></div>
+        <div id="me" style="margin-top:12px;"></div>
+        <div class="muted" style="margin-top:10px;">
+          Active car size controls spot creation compatibility.
+        </div>
+        <label>Active car size (for new spots)</label>
+        <select id="active-car-size">
+          <option value="small">small</option>
+          <option value="medium">medium</option>
+          <option value="large">large</option>
+        </select>
+        <div class="muted" id="active-help"></div>
+        <a href="/">Back to map</a>
+      </div>
+
+      <div class="card">
+        <h1>My cars</h1>
+        <div id="cars"></div>
+      </div>
+
+      <div class="card">
+        <h1>Add a car</h1>
+        <form id="add-car-form">
+          <label>Brand</label>
+          <input name="brand" required />
+
+          <label>Model</label>
+          <input name="model" required />
+
+          <label>Size</label>
+          <select name="size" required>
+            <option value="small">small</option>
+            <option value="medium">medium</option>
+            <option value="large">large</option>
+          </select>
+
+          <button type="submit">Save car</button>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      const API_BASE = "http://localhost:3000/api";
+      const SESSION_USER_KEY = "userId";
+      const ACTIVE_CAR_SIZE_KEY = "upostu_active_car_size";
+
+      const statusEl = document.getElementById("status");
+      const meEl = document.getElementById("me");
+      const carsEl = document.getElementById("cars");
+      const activeSizeEl = document.getElementById("active-car-size");
+      const addCarForm = document.getElementById("add-car-form");
+
+      const userId = (localStorage.getItem(SESSION_USER_KEY) || "").trim();
+      if (!userId) {
+        window.location.href = "/login.html";
+      }
+
+      function setStatus(msg) {
+        statusEl.textContent = msg || "";
+      }
+
+      async function api(path, opts = {}) {
+        const res = await fetch(`${API_BASE}${path}`, opts);
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.detail || data.error || "Request failed");
+        return data;
+      }
+
+      function renderMe() {
+        meEl.innerHTML = `
+          <div><b>Logged user</b></div>
+          <div class="muted">userId: ${userId}</div>
+        `;
+      }
+
+      function renderCars(car) {
+        if (!car) {
+          carsEl.innerHTML = `<div class="muted">No cars yet.</div>`;
+          return;
+        }
+        carsEl.innerHTML = `
+          <div class="car">
+            <div><b>${car.brand}</b> ${car.model}</div>
+            <div class="muted">size: ${car.size}</div>
+          </div>
+        `;
+      }
+
+      async function load() {
+        try {
+          setStatus("Loading...");
+          renderMe();
+          const data = await api(`/user-cars?userId=${encodeURIComponent(userId)}`);
+          const cars = Array.isArray(data && data.cars) ? data.cars : [];
+          const car = cars.find((c) => String(c.userId || c.user_uid || "") === userId) || null;
+          renderCars(car);
+
+          const saved = localStorage.getItem(ACTIVE_CAR_SIZE_KEY) || "medium";
+          activeSizeEl.value = saved;
+          document.getElementById("active-help").textContent =
+            "Backend normalizes: small vs (medium/large).";
+        } catch (e) {
+          setStatus(String(e && e.message ? e.message : e));
+        }
+      }
+
+      activeSizeEl.addEventListener("change", () => {
+        localStorage.setItem(ACTIVE_CAR_SIZE_KEY, activeSizeEl.value);
+      });
+
+      addCarForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        try {
+          setStatus("Saving car...");
+          const payload = Object.fromEntries(new FormData(addCarForm).entries());
+          console.log("SAVING CAR FOR USER:", userId);
+          await api("/add-car", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              userId,
+              brand: payload.brand,
+              model: payload.model,
+              size: payload.size,
+            }),
+          });
+          await load();
+          setStatus("Car saved.");
+        } catch (e2) {
+          setStatus(String(e2 && e2.message ? e2.message : e2));
+        }
+      });
+
+      load();
+    </script>
+  </body>
+</html>
+

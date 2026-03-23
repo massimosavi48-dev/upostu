@@ -7,3 +7,4 @@ python-dotenv
 pydantic
 pydantic-settings
 email-validator
+stripe

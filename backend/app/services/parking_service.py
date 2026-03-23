@@ -19,6 +19,9 @@ async def create_parking_spot(
         latitude=payload.latitude,
         longitude=payload.longitude,
         created_at=datetime.utcnow(),
+        created_by_uid=payload.created_by_uid,
+        city_id=payload.city_id,
+        spot_size=payload.spot_size,
     )
 
     db.add(spot)

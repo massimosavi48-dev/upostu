@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin Login</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #000;
+        color: #fff;
+        display: flex;
+        min-height: 100vh;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+      }
+      .card {
+        width: 100%;
+        max-width: 420px;
+        background: #111;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 14px;
+        padding: 18px;
+        box-shadow: 0 18px 42px rgba(0, 0, 0, 0.55);
+      }
+      h1 { font-size: 20px; margin: 0 0 14px; }
+      label { display: block; text-align: left; font-weight: 700; opacity: 0.9; margin-top: 12px; }
+      input, button { width: 100%; padding: 12px 12px; margin-top: 8px; border-radius: 12px; border: none; }
+      input { background: rgba(0,0,0,0.25); color: #fff; border: 1px solid rgba(255,255,255,0.12); }
+      button { margin-top: 16px; background: #3b82f6; color: #fff; font-weight: 900; cursor: pointer; }
+      .muted { opacity: 0.8; font-size: 13px; margin-top: 10px; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Admin Login</h1>
+      <form id="admin-login-form">
+        <label>Username</label>
+        <input name="username" required />
+
+        <label>Password</label>
+        <input name="password" type="password" required />
+
+        <button type="submit">Login</button>
+        <div class="muted" id="status"></div>
+      </form>
+    </div>
+
+    <script>
+      const form = document.getElementById("admin-login-form");
+      const statusEl = document.getElementById("status");
+
+      const ADMIN_USERNAME = "admin";
+      const ADMIN_PASSWORD = "1234";
+
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const payload = Object.fromEntries(new FormData(form).entries());
+        const username = String(payload.username || "").trim();
+        const password = String(payload.password || "");
+
+        if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+          localStorage.setItem("isAdmin", "true");
+          window.location.href = "/admin";
+          return;
+        }
+
+        statusEl.textContent = "Invalid credentials";
+      });
+    </script>
+  </body>
+</html>

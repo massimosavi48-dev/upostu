@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin — UPOSTU</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="/admin.css" />
+  </head>
+  <body class="admin-body">
+    <div class="admin-app">
+      <main class="admin-map-col">
+        <header class="map-toolbar">
+          <div class="toolbar-left">
+            <strong class="brand">UPOSTU Admin</strong>
+            <button type="button" id="reloadBtn" class="btn-ghost">Reload</button>
+            <button type="button" id="logoutBtn" class="btn-ghost">Logout</button>
+          </div>
+          <div class="toolbar-mid">
+            <span class="badge" id="live-badge">Connecting…</span>
+            <span class="muted" id="live-note"></span>
+          </div>
+          <div class="toolbar-kpis">
+            <span class="kpi-pill"><span class="muted">Live users</span> <b id="kpi-users">0</b></span>
+            <span class="kpi-pill"><span class="muted">Available</span> <b id="kpi-spots">0</b></span>
+            <span class="kpi-pill"><span class="muted">Reserved</span> <b id="kpi-reserved">0</b></span>
+            <span class="kpi-pill"><span class="muted">Markers</span> <b id="kpi-markers">0</b></span>
+          </div>
+        </header>
+
+        <div class="filter-row map-filters">
+          <button id="filter-all" type="button">All</button>
+          <button id="filter-available" type="button">Available</button>
+          <button id="filter-just-freed" type="button">Just freed</button>
+          <button id="filter-cheapest" type="button">Cheapest</button>
+          <button id="center-user" type="button">Center on user</button>
+        </div>
+        <p class="map-legend muted">Blue: users · Green: available · Orange: reserved</p>
+
+        <div id="map" class="admin-map"></div>
+
+        <!-- Hidden hooks for polling/WS table renderers (no layout impact) -->
+        <table class="visually-hidden" aria-hidden="true">
+          <tbody id="spots-tbody"></tbody>
+          <tbody id="reserved-spots-tbody"></tbody>
+        </table>
+        <div id="revenue-panel" class="visually-hidden" aria-hidden="true"></div>
+        <div id="analytics-note" class="visually-hidden"></div>
+      </main>
+
+      <aside class="admin-sidebar" aria-label="Admin data">
+        <div id="admin-toast-host" class="admin-toast-host" aria-live="polite"></div>
+        <div class="sidebar-header">
+          <h2 class="sidebar-title">Data</h2>
+          <p class="muted sidebar-sub">Select a section</p>
+        </div>
+        <nav class="admin-sidebar-nav" id="admin-sidebar-nav">
+          <button type="button" data-section="users" class="nav-btn">Users</button>
+          <button type="button" data-section="cars" class="nav-btn">Cars</button>
+          <button type="button" data-section="bookings" class="nav-btn">Bookings</button>
+          <button type="button" data-section="wallet" class="nav-btn">Wallet</button>
+          <button type="button" data-section="stats" class="nav-btn">Platform stats</button>
+        </nav>
+        <div class="sidebar-content-wrap">
+          <div id="sidebar-content" class="sidebar-content">
+            <p class="muted">Loading…</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="/admin.js"></script>
+    <script>
+      function logout() {
+        localStorage.removeItem("isAdmin");
+        window.location.href = "/admin-login";
+      }
+    </script>
+  </body>
+</html>

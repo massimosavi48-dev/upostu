@@ -1,0 +1,26 @@
+{
+  "name": "upostu",
+  "version": "1.0.0",
+  "description": "UPOSTU is a smart parking platform with:",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently -k -n BACKEND,FRONTEND -c green,blue \"cd backend && python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload\" \"npx live-server frontend/pwa/public --port=3000 --proxy=/api:http://127.0.0.1:8000/api\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/massimosavi48-dev/upostu.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/massimosavi48-dev/upostu/issues"
+  },
+  "homepage": "https://github.com/massimosavi48-dev/upostu#readme",
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "live-server": "^1.2.2"
+  }
+}
