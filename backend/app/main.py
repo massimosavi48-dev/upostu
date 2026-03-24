@@ -256,8 +256,7 @@ def create_app() -> FastAPI:
     # REALTIME WEBSOCKET BROADCAST
     # ========================
 
-    @app.websocket("/ws/spots")
-    async def spots_websocket(ws: WebSocket):
+    async def _spots_websocket_handler(ws: WebSocket):
         await ws.accept()
         connected_spot_clients.add(ws)
         try:
@@ -272,8 +271,15 @@ def create_app() -> FastAPI:
         finally:
             connected_spot_clients.discard(ws)
 
-    @app.websocket("/ws/admin")
-    async def admin_dashboard_websocket(ws: WebSocket):
+    @app.websocket("/ws/spots")
+    async def spots_websocket(ws: WebSocket):
+        await _spots_websocket_handler(ws)
+
+    @app.websocket("/api/ws/spots")
+    async def spots_websocket_api(ws: WebSocket):
+        await _spots_websocket_handler(ws)
+
+    async def _admin_dashboard_websocket_handler(ws: WebSocket):
         await ws.accept()
         async with admin_ws_connections_lock:
             admin_ws_connections.append(ws)
@@ -289,8 +295,15 @@ def create_app() -> FastAPI:
                 except ValueError:
                     pass
 
-    @app.websocket("/api/ws")
-    async def websocket_endpoint(websocket: WebSocket):
+    @app.websocket("/ws/admin")
+    async def admin_dashboard_websocket(ws: WebSocket):
+        await _admin_dashboard_websocket_handler(ws)
+
+    @app.websocket("/api/ws/admin")
+    async def admin_dashboard_websocket_api(ws: WebSocket):
+        await _admin_dashboard_websocket_handler(ws)
+
+    async def _client_websocket_handler(websocket: WebSocket):
         await websocket.accept()
         connected_clients.add(websocket)
         # Unknown user until the client sends its first "update_position"/"new_spot"/etc.
@@ -489,6 +502,14 @@ def create_app() -> FastAPI:
             if websocket in client_user_ids:
                 client_user_ids.pop(websocket, None)
             logger.info(f"❌ WebSocket disconnected: {id(websocket)} ({len(connected_clients)} clients left)")
+
+    @app.websocket("/api/ws")
+    async def websocket_endpoint(websocket: WebSocket):
+        await _client_websocket_handler(websocket)
+
+    @app.websocket("/ws")
+    async def websocket_endpoint_compat(websocket: WebSocket):
+        await _client_websocket_handler(websocket)
 
     # ========================
     # STARTUP

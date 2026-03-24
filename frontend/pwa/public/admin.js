@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:8000";
+const API_BASE = window.location.origin;
 const API_PREFIX = "/api";
 const POLL_INTERVAL_MS = 2000;
 /** Remove user markers from the map after this many ms without a position update (5–10s grace). */
@@ -6,7 +6,7 @@ const USER_MARKER_INACTIVITY_MS = 8000;
 const SPOT_ICON_URL = "/upostu-marker.png";
 const LEAVING_SPOT_ICON_URL = "/assets/parking_blue.png";
 const LEAVING_SPOT_ICON_SIZE = [40, 40];
-const WS_SPOTS_URL = "ws://localhost:8000/ws/spots";
+const WS_SPOTS_URL = `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/api/ws/spots`;
 /** TEMP: default Leaflet marker at same coords — set false or delete after alignment confirmation. */
 const DEBUG_ALIGN_SPOT_DEFAULT_MARKER = true;
 // --- FIX: Ensure Leaflet marker and popup use EXACT SAME coordinates from single source ---
@@ -31,11 +31,10 @@ function createSpotMarker(spot, map) {
 
 function adminWsUrl() {
   try {
-    const u = new URL(API_BASE);
-    const wsProto = u.protocol === "https:" ? "wss:" : "ws:";
-    return `${wsProto}//${u.host}/ws/admin`;
+    const wsProto = window.location.protocol === "https:" ? "wss:" : "ws:";
+    return `${wsProto}//${window.location.host}/api/ws/admin`;
   } catch {
-    return "ws://localhost:8000/ws/admin";
+    return "/api/ws/admin";
   }
 }
 
