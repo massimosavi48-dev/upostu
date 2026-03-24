@@ -63,7 +63,7 @@
 
         const payload = Object.fromEntries(new FormData(form).entries());
         try {
-          const res = await fetch("/api/login", {
+          const res = await fetch("/api/auth/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
@@ -80,12 +80,13 @@
             localStorage.setItem("userId", String(data.user.uid || data.user.id));
           }
           if (data && data.access_token) {
+            localStorage.setItem("upostu_auth", data.access_token);
             localStorage.setItem("upostu_auth_token", data.access_token);
           }
           if (!localStorage.getItem("upostu_active_car_size")) {
             localStorage.setItem("upostu_active_car_size", "medium");
           }
-          window.location.href = "/";
+          window.location.href = "/admin.html";
         } catch (err) {
           console.error("Login error:", err);
           statusEl.textContent = "Login failed";

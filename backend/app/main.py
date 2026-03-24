@@ -657,6 +657,19 @@ def create_app() -> FastAPI:
         data["message"] = "Login successful"
         return data
 
+    @app.post("/login")
+    async def login_compat(payload: UserLoginRequest, db: AsyncSession = Depends(get_db)):
+        """
+        Compatibility alias for deployments where reverse proxy strips `/api`.
+        """
+        req_payload = payload.model_dump() if hasattr(payload, "model_dump") else payload.dict()
+        logger.info("LOGIN HIT (compat): %s", {"email": req_payload.get("email")})
+        token_resp = await auth.login(payload, db=db)
+        data = token_resp.model_dump() if hasattr(token_resp, "model_dump") else token_resp.dict()
+        data["success"] = True
+        data["message"] = "Login successful"
+        return data
+
     class TopUpRequest(BaseModel):
         userId: str = Field(min_length=1)
         amount: Decimal

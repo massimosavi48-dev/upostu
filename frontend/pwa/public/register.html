@@ -70,8 +70,7 @@
         const payload = Object.fromEntries(new FormData(form).entries());
         try {
           console.log("Sending register request...");
-          // Use absolute URL so registration works even if frontend/backend run on different ports.
-          const res = await fetch("http://localhost:3000/api/register", {
+          const res = await fetch("/api/register", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
@@ -86,6 +85,7 @@
           if (data && data.user && (data.user.uid || data.user.id)) {
             localStorage.setItem("userId", String(data.user.uid || data.user.id));
           }
+          localStorage.setItem("upostu_auth", data.access_token);
           localStorage.setItem("upostu_auth_token", data.access_token);
           // Default active car size used by the map when creating spots.
           localStorage.setItem("upostu_active_car_size", "medium");

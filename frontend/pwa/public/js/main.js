@@ -1,8 +1,8 @@
 // ACTIVE BUNDLE: loaded by `public/main.js` via `import "./js/main.js"`. Do not rename to *.UNUSED.js.
-const API_BASE = "http://localhost:3000/api";
-const WS_URL = "ws://localhost:3000/api/ws";
+const API_BASE = "/api";
+const WS_URL = `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/api/ws`;
 const SESSION_USER_KEY = "userId";
-const CAR_API_BASE = "http://localhost:3000/api";
+const CAR_API_BASE = "/api";
 
 window.addEventListener("load", () => {
   try {
@@ -19,11 +19,8 @@ window.addEventListener("DOMContentLoaded", () => {
  console.log("main.js executing");
  console.log("DOMContentLoaded");
 
- const userId = localStorage.getItem(SESSION_USER_KEY);
- if (!userId) {
-  window.location.href = "/login.html";
-  return;
- }
+ // Guest mode: never redirect on initial app load.
+ // Protected actions decide when login is required.
 
  const mapEl = document.getElementById("map");
  if (!mapEl) {
@@ -331,7 +328,7 @@ function getOrCreateUserId() {
       state.userId = String(storedUserId);
       return state.userId;
     }
-    const token = localStorage.getItem(AUTH_TOKEN_KEY);
+    const token = getStoredAuthToken();
     if (token) {
       const uid = decodeUidFromToken(token);
       if (uid) {
@@ -346,7 +343,19 @@ function getOrCreateUserId() {
   }
 }
 
+// Backward-compatible auth token read:
+// prefer the new key used by login/register, fallback to legacy key.
+function getStoredAuthToken() {
+  return localStorage.getItem("upostu_auth") || localStorage.getItem(AUTH_TOKEN_KEY) || "";
+}
+
 function requireUserIdOrRedirect() {
+  const uid = getOrCreateUserId();
+  if (uid) return uid;
+  return null;
+}
+
+function requireUserIdForProtectedAction() {
   const uid = getOrCreateUserId();
   if (uid) return uid;
   window.location.href = "/login.html";
@@ -424,7 +433,7 @@ function setupWalletTopup() {
   if (!btn5 && !btn10 && !btn20) return;
 
   const topup = async (amount) => {
-    const userId = requireUserIdOrRedirect();
+    const userId = requireUserIdForProtectedAction();
     if (!userId) return;
     try {
       const res = await fetch(`${API_BASE}/topup`, {
@@ -476,7 +485,7 @@ function sendPosition(lat, lng) {
 }
 
 function sendLeaveSpot(lat, lng) {
-  const userId = requireUserIdOrRedirect();
+  const userId = requireUserIdForProtectedAction();
   if (!userId) return;
   const activeCarSize = localStorage.getItem(ACTIVE_CAR_SIZE_KEY) || "large";
   const payload = { type: "new_spot", userId, lat, lng, spotSize: activeCarSize };
@@ -520,7 +529,7 @@ function sendRemoveSpot(spotUserId) {
 function sendClaimSpot(spotUserId) {
   const ws = state.socket;
   if (!ws || ws.readyState !== WebSocket.OPEN) return;
-  const userId = requireUserIdOrRedirect();
+  const userId = requireUserIdForProtectedAction();
   if (!userId) return;
   const payload = { type: "claim", userId, spotUserId };
   try {
@@ -560,7 +569,7 @@ function requestPushPermissionIfNeeded() {
 }
 
 async function bookSpot(spotId) {
-  const userId = requireUserIdOrRedirect();
+  const userId = requireUserIdForProtectedAction();
   if (!userId || !spotId) return;
   try {
     const res = await fetch(`${API_BASE}/book`, {
@@ -1574,6 +1583,7 @@ const logoutBtn = document.getElementById("logout-btn");
 if (logoutBtn) {
   logoutBtn.onclick = () => {
     localStorage.removeItem(SESSION_USER_KEY);
+    localStorage.removeItem("upostu_auth");
     localStorage.removeItem(AUTH_TOKEN_KEY);
     window.location.href = "/login.html";
   };
@@ -1596,7 +1606,7 @@ if (unlockBtnEl) {
 
       setLoadingOverlay(true, "Processing payment...");
 
-      const token = localStorage.getItem(AUTH_TOKEN_KEY);
+      const token = getStoredAuthToken();
       if (!token) {
         setLoadingOverlay(false);
         throw new Error("Please login to unlock a spot.");
