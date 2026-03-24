@@ -87,7 +87,7 @@
         statusEl.textContent = "Registering...";
         try {
           console.log("Sending register request...");
-          const res = await fetch("https://upostu.it:8000/register", {
+          const res = await fetch("/register", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
