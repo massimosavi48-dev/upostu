@@ -87,7 +87,7 @@
         statusEl.textContent = "Registering...";
         try {
           console.log("Sending register request...");
-          const res = await fetch("/api/register", {
+          const res = await fetch("http://188.213.166.238:8000/register", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),

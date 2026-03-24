@@ -7,7 +7,7 @@ class Settings(BaseSettings):
 
     # Host-side default for the Dockerized local Postgres instance.
     # The backend container overrides this via its own DATABASE_URL env var.
-    database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5433/upostu"
+    database_url: str = "postgresql+asyncpg://postgres:upostu123@upostu_postgres:5432/upostu"
 
     jwt_secret_key: str = "CHANGE_ME"
     jwt_algorithm: str = "HS256"
