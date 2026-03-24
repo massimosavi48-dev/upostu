@@ -87,6 +87,7 @@
       const API_BASE = "/api";
       const SESSION_USER_KEY = "userId";
       const ACTIVE_CAR_SIZE_KEY = "upostu_active_car_size";
+      const AUTH_TOKEN_KEY = "upostu_auth";
 
       const statusEl = document.getElementById("status");
       const meEl = document.getElementById("me");
@@ -94,7 +95,7 @@
       const activeSizeEl = document.getElementById("active-car-size");
       const addCarForm = document.getElementById("add-car-form");
 
-      const userId = (localStorage.getItem(SESSION_USER_KEY) || "").trim();
+      let userId = (localStorage.getItem(SESSION_USER_KEY) || "").trim();
       if (!userId) {
         window.location.href = "/login.html";
       }
@@ -110,10 +111,42 @@
         return data;
       }
 
-      function renderMe() {
+      function getAuthToken() {
+        return (
+          (localStorage.getItem(AUTH_TOKEN_KEY) || "").trim() ||
+          (localStorage.getItem("upostu_auth_token") || "").trim()
+        );
+      }
+
+      async function loadMe() {
+        const token = getAuthToken();
+        if (!token) {
+          throw new Error("Please login");
+        }
+        const res = await fetch(`${API_BASE}/auth/me`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(data.detail || "Load failed");
+        }
+        return data;
+      }
+
+      function renderMe(me) {
+        const uid = me && me.uid ? String(me.uid) : userId;
+        const fullName = [me && me.name ? String(me.name) : "", me && me.surname ? String(me.surname) : ""]
+          .filter(Boolean)
+          .join(" ")
+          .trim();
+        const email = me && me.email ? String(me.email) : "";
         meEl.innerHTML = `
-          <div><b>Logged user</b></div>
-          <div class="muted">userId: ${userId}</div>
+          <div><b>${fullName || "Logged user"}</b></div>
+          <div class="muted">userId: ${uid || "-"}</div>
+          <div class="muted">email: ${email || "-"}</div>
         `;
       }
 
@@ -133,7 +166,12 @@
       async function load() {
         try {
           setStatus("Loading...");
-          renderMe();
+          const me = await loadMe();
+          if (me && me.uid) {
+            userId = String(me.uid);
+            localStorage.setItem(SESSION_USER_KEY, userId);
+          }
+          renderMe(me);
           const data = await api(`/user-cars?userId=${encodeURIComponent(userId)}`);
           const cars = Array.isArray(data && data.cars) ? data.cars : [];
           const car = cars.find((c) => String(c.userId || c.user_uid || "") === userId) || null;

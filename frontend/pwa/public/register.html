@@ -63,11 +63,28 @@
       const form = document.getElementById("register-form");
       const statusEl = document.getElementById("status");
 
+      function getFriendlyErrorMessage(data) {
+        const detail = data && data.detail;
+        if (typeof detail === "string" && detail.trim()) return detail.trim();
+        if (Array.isArray(detail) && detail.length > 0) {
+          const first = detail[0] || {};
+          if (typeof first === "string" && first.trim()) return first.trim();
+          if (first && typeof first.msg === "string" && first.msg.trim()) return first.msg.trim();
+        }
+        return "Registration failed. Please check your data and try again.";
+      }
+
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
-        statusEl.textContent = "Registering...";
 
         const payload = Object.fromEntries(new FormData(form).entries());
+        const password = String(payload.password || "");
+        if (password.length < 8) {
+          statusEl.textContent = "Password must be at least 8 characters.";
+          return;
+        }
+
+        statusEl.textContent = "Registering...";
         try {
           console.log("Sending register request...");
           const res = await fetch("/api/register", {
@@ -78,7 +95,7 @@
 
           const data = await res.json().catch(() => ({}));
           if (!res.ok) {
-            statusEl.textContent = data.detail || "Registration failed";
+            statusEl.textContent = getFriendlyErrorMessage(data);
             return;
           }
 
@@ -92,7 +109,7 @@
           window.location.href = "/";
         } catch (err) {
           console.error("Register error:", err);
-          statusEl.textContent = "Registration failed";
+          statusEl.textContent = "Network error. Check your connection and try again.";
         }
       });
     </script>
